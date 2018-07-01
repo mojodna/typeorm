@@ -975,6 +975,10 @@ var PostgresQueryRunner = /** @class */ (function (_super) {
                                 downQueries.push("ALTER TABLE " + this.escapeTableName(table) + " ALTER COLUMN \"" + newColumn.name + "\" SET DEFAULT " + oldColumn.default);
                             }
                         }
+                        if (newColumn.spatialFeatureType !== oldColumn.spatialFeatureType || newColumn.srid !== oldColumn.srid) {
+                            upQueries.push("ALTER TABLE " + this.escapeTableName(table) + " ALTER COLUMN \"" + newColumn.name + "\" TYPE " + this.driver.createFullType(newColumn));
+                            downQueries.push("ALTER TABLE " + this.escapeTableName(table) + " ALTER COLUMN \"" + newColumn.name + "\" TYPE " + this.driver.createFullType(oldColumn));
+                        }
                         _b.label = 7;
                     case 7: return [4 /*yield*/, this.executeQueries(upQueries, downQueries)];
                     case 8:

@@ -222,6 +222,10 @@ export declare class ColumnMetadata {
      */
     isMaterializedPath: boolean;
     /**
+     * Spatial Feature Type (Geometry, Point, Polygon, etc.)
+     */
+    spatialFeatureType?: string;
+    /**
      * SRID (Spatial Reference ID (EPSG code))
      */
     srid?: number;

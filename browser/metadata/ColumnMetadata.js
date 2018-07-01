@@ -168,6 +168,8 @@ var ColumnMetadata = /** @class */ (function () {
         }
         if (options.args.options.transformer)
             this.transformer = options.args.options.transformer;
+        if (options.args.options.spatialFeatureType)
+            this.spatialFeatureType = options.args.options.spatialFeatureType;
         if (options.args.options.srid)
             this.srid = options.args.options.srid;
         if (this.isTreeLevel)
