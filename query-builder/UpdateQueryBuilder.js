@@ -381,7 +381,22 @@ var UpdateQueryBuilder = /** @class */ (function (_super) {
                         else {
                             _this.expressionMap.nativeParameters[paramName] = value;
                         }
-                        updateColumnAndValues.push(_this.escape(column.databaseName) + " = " + _this.connection.driver.createParameter(paramName, parametersCount));
+                        var expression = null;
+                        if (_this.connection.driver instanceof MysqlDriver_1.MysqlDriver && _this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
+                            expression = "GeomFromText(" + _this.connection.driver.createParameter(paramName, parametersCount) + ")";
+                        }
+                        else if (_this.connection.driver instanceof PostgresDriver_1.PostgresDriver && _this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
+                            if (column.srid != null) {
+                                expression = "ST_SetSRID(ST_GeomFromGeoJSON(" + _this.connection.driver.createParameter(paramName, parametersCount) + "), " + column.srid + ")::" + column.type;
+                            }
+                            else {
+                                expression = "ST_GeomFromGeoJSON(" + _this.connection.driver.createParameter(paramName, parametersCount) + ")::" + column.type;
+                            }
+                        }
+                        else {
+                            expression = _this.connection.driver.createParameter(paramName, parametersCount);
+                        }
+                        updateColumnAndValues.push(_this.escape(column.databaseName) + " = " + expression);
                         parametersCount++;
                     }
                 });
