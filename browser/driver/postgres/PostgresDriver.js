@@ -745,7 +745,9 @@ var PostgresDriver = /** @class */ (function () {
                 || tableColumn.isNullable !== columnMetadata.isNullable
                 || tableColumn.isUnique !== _this.normalizeIsUnique(columnMetadata)
                 || (tableColumn.enum && columnMetadata.enum && !OrmUtils.isArraysEqual(tableColumn.enum, columnMetadata.enum))
-                || tableColumn.isGenerated !== columnMetadata.isGenerated;
+                || tableColumn.isGenerated !== columnMetadata.isGenerated
+                || (tableColumn.spatialFeatureType || "").toLowerCase() !== (columnMetadata.spatialFeatureType || "").toLowerCase()
+                || tableColumn.srid !== columnMetadata.srid;
         });
     };
     /**
