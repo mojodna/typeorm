@@ -975,7 +975,7 @@ var PostgresQueryRunner = /** @class */ (function (_super) {
                                 downQueries.push("ALTER TABLE " + this.escapeTableName(table) + " ALTER COLUMN \"" + newColumn.name + "\" SET DEFAULT " + oldColumn.default);
                             }
                         }
-                        if (newColumn.spatialFeatureType !== oldColumn.spatialFeatureType || newColumn.srid !== oldColumn.srid) {
+                        if ((newColumn.spatialFeatureType || "").toLowerCase() !== (oldColumn.spatialFeatureType || "").toLowerCase() || newColumn.srid !== oldColumn.srid) {
                             upQueries.push("ALTER TABLE " + this.escapeTableName(table) + " ALTER COLUMN \"" + newColumn.name + "\" TYPE " + this.driver.createFullType(newColumn));
                             downQueries.push("ALTER TABLE " + this.escapeTableName(table) + " ALTER COLUMN \"" + newColumn.name + "\" TYPE " + this.driver.createFullType(oldColumn));
                         }
@@ -1786,7 +1786,7 @@ var PostgresQueryRunner = /** @class */ (function (_super) {
                                                     .filter(function (dbColumn) { return _this.driver.buildTableName(dbColumn["table_name"], dbColumn["table_schema"]) === tableFullName; })
                                                     .map(function (dbColumn) { return __awaiter(_this, void 0, void 0, function () {
                                                     var _this = this;
-                                                    var columnConstraints, tableColumn, type, sql, results, length, uniqueConstraint, isConstraintComposite;
+                                                    var columnConstraints, tableColumn, type, sql, results, geometryColumnSql, results, geographyColumnSql, results, length, uniqueConstraint, isConstraintComposite;
                                                     return __generator(this, function (_a) {
                                                         switch (_a.label) {
                                                             case 0:
@@ -1836,6 +1836,24 @@ var PostgresQueryRunner = /** @class */ (function (_super) {
                                                                 tableColumn.enum = results.map(function (result) { return result["value"]; });
                                                                 _a.label = 2;
                                                             case 2:
+                                                                if (!(tableColumn.type === "geometry")) return [3 /*break*/, 4];
+                                                                geometryColumnSql = "SELECT * FROM (\n                        SELECT\n                          f_table_schema table_schema,\n                          f_table_name table_name,\n                          f_geometry_column column_name,\n                          srid,\n                          type\n                        FROM geometry_columns\n                      ) AS _\n                      WHERE " + tablesCondition + " AND column_name = '" + tableColumn.name + "'";
+                                                                return [4 /*yield*/, this.query(geometryColumnSql)];
+                                                            case 3:
+                                                                results = _a.sent();
+                                                                tableColumn.spatialFeatureType = results[0].type;
+                                                                tableColumn.srid = results[0].srid;
+                                                                _a.label = 4;
+                                                            case 4:
+                                                                if (!(tableColumn.type === "geography")) return [3 /*break*/, 6];
+                                                                geographyColumnSql = "SELECT * FROM (\n                        SELECT\n                          f_table_schema table_schema,\n                          f_table_name table_name,\n                          f_geography_column column_name,\n                          srid,\n                          type\n                        FROM geography_columns\n                      ) AS _\n                      WHERE " + tablesCondition + " AND column_name = '" + tableColumn.name + "'";
+                                                                return [4 /*yield*/, this.query(geographyColumnSql)];
+                                                            case 5:
+                                                                results = _a.sent();
+                                                                tableColumn.spatialFeatureType = results[0].type;
+                                                                tableColumn.srid = results[0].srid;
+                                                                _a.label = 6;
+                                                            case 6:
                                                                 // check only columns that have length property
                                                                 if (this.driver.withLengthColumnTypes.indexOf(tableColumn.type) !== -1 && dbColumn["character_maximum_length"]) {
                                                                     length = dbColumn["character_maximum_length"].toString();
